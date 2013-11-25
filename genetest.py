@@ -17,15 +17,18 @@ def main():
     
     #Create new graph, fill it with some values
 
-    nodeTuples = [(0,0), (1, 0), (2,1), (3,1), (4,0)]
-    edgeTuples = [(1,4,1), (0,2,-1), (3,1,-1), (2,4,1)]
+    network = gn.geneNetwork(preset="RANDOM")
 
-    network = gn.geneNetwork(nodeTuples, edgeTuples)
-    network.printNetwork('graphBefore.jpg')
+    network.printNetwork('graph0.jpg')
+    network.testUpdate()
+    network.printNetwork('graph1.jpg')
+    network.testUpdate()
+    network.printNetwork('graph2.jpg')
+    network.testUpdate()
+    network.printNetwork('graph3.jpg')
+    network.testUpdate()
+    network.printNetwork('graph4.jpg')
 
-    network.update(1.0)
-
-    network.printNetwork('graphAfter.jpg')
 
 
 if __name__ == "__main__":
