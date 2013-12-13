@@ -10,24 +10,18 @@ import genenetwork as gn
 Code to test the geneNetwork class.
 
 James Komianos
-Last edited: 11/18/13
+Last edited: 12/12/13
 """""""""""""""""""""""""""""""""""
 
 def main():
     
     #Create new graph, fill it with some values
 
-    network = gn.geneNetwork(preset="RANDOM")
+    network = gn.geneNetwork(preset="RANDOM", numNodes=1000, connectionsPerNode=10)
 
-    network.printNetwork('graph0.jpg')
-    network.testUpdate()
-    network.printNetwork('graph1.jpg')
-    network.testUpdate()
-    network.printNetwork('graph2.jpg')
-    network.testUpdate()
-    network.printNetwork('graph3.jpg')
-    network.testUpdate()
-    network.printNetwork('graph4.jpg')
+    network.generateHammingDistVsThreshold(thresholdMin=-2, thresholdMax=6,
+                                        thresholdStep=0.25, numICsPerThreshold=100,
+                                        numTimeStepsToSaturate=10, diffPermutation = 0.01)
 
 
 

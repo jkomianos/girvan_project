@@ -19,6 +19,7 @@ class geneNetwork:
 	G = nx.Graph()
 	GPerm = None
 	numGenes = 0
+	connectionsPerGene = 0
 
 	"""
 	Constructor
@@ -26,8 +27,8 @@ class geneNetwork:
 	edgeTuples= a list of tuples containing
 		the edges to add, with weights
 	"""
-	def __init__(self, preset="RANDOM", numNodes=100, 
-				connectionsPerNode=5, nodeTuples=None, edgeTuples=None):
+	def __init__(self, preset="RANDOM", numNodes=1000, 
+				connectionsPerNode=10, nodeTuples=None, edgeTuples=None):
 
 		if preset == "RANDOM":
 			#Add nodes
@@ -40,11 +41,12 @@ class geneNetwork:
 			for i in xrange(0, numNodes):
 				for j in xrange(0, connectionsPerNode):
 					randomNode = random.randint(0,numNodes-1)
-					randomWeight = 1 if random.random() >= 0.25 else -1
+					randomWeight = 1 if random.random() >= 0.33 else -1
 					toConnect = randomNode if randomNode != i else random.randint(0,numNodes-1)
 					self.G.add_edge(i, randomNode, weight=randomWeight)
 
 			self.numGenes = numNodes
+			self.connectionsPerGene = connectionsPerNode
 
 		if preset == "MANUAL":
 			for nodeTuple in nodeTuples:
@@ -52,6 +54,29 @@ class geneNetwork:
 
 			self.G.add_weighted_edges_from(edgeTuples)
 			self.numGenes = len(nodeTuples)
+
+
+	"""
+	Resets the current graph	
+	"""
+	def reset(self):
+
+		self.G = nx.Graph()
+		self.GPerm = None
+
+		#Add nodes
+		for i in xrange(0, self.numGenes):
+
+			state = 1 if random.random() >= 0.5 else 0
+			self.G.add_node(i, value=state)
+
+		#Now add edges
+		for i in xrange(0, self.numGenes):
+			for j in xrange(0, self.connectionsPerGene):
+				randomNode = random.randint(0,self.numGenes-1)
+				randomWeight = 1 if random.random() >= 0.33 else -1
+				toConnect = randomNode if randomNode != i else random.randint(0,self.numGenes-1)
+				self.G.add_edge(i, randomNode, weight=randomWeight)
 
 	"""
 	Update graphs using thresholding
@@ -61,37 +86,36 @@ class geneNetwork:
 		#Iterate over all nodes
 		for n in self.G:
 			sumN = 0
-			value = self.G.node[n]['value']
 			#Find all adjacents
 			for neighbor in self.G.neighbors_iter(n):
 				#Get edge weight
+				value = self.G.node[neighbor]['value']
 				weight = self.G[n][neighbor]['weight']
-				sumN += value * weight
+				sumN += value * weight	
 
-			#Update node based on sign of sum	
-			print "Node=", n, "Value of change", sumN - threshold, "Current Value=",value
-			if (sumN - threshold >= 0): self.G.node[n]['value'] = 1
+			#Update node based on sign of sum
+			if (sumN > threshold): self.G.node[n]['value'] = 1
 			else: self.G.node[n]['value'] = 0
 
 		#Update the permutation if it exists
 		if self.GPerm != None:	
 			for n in self.GPerm:
 				sumN = 0
-				value = self.GPerm.node[n]['value']
 				#Find all adjacents
 				for neighbor in self.GPerm.neighbors_iter(n):
-					#Get edge weight
+					#Get edge weight 
+					value = self.GPerm.node[neighbor]['value']
 					weight = self.GPerm[n][neighbor]['weight']
 					sumN += value * weight
 
 				#Update node based on sign of sum	
-				if (sumN - threshold>= 0): self.GPerm.node[n]['value'] = 1 
+				if (sumN > threshold): self.GPerm.node[n]['value'] = 1 
 				else: self.GPerm.node[n]['value'] = 0
 
 	"""
 	Create permutation of current graph
 	"""
-	def createPermutation(self, diffThreshold=0.1):
+	def createPermutation(self, diffThreshold=0.01):
 		self.GPerm = self.G.copy()
 		#Change percentage of nodes (keep edges the same)
 		numToChange = int(diffThreshold * self.numGenes)
@@ -122,16 +146,46 @@ class geneNetwork:
 	"""
 	Compute the saturated hamming distance between G and GPerm
 	"""
-	def calculateSatHammingDist(self, numTimeSteps=20, threshold=0.5):	
+	def calculateSatHammingDist(self, numTimeSteps=10, threshold=0):	
 
-		hammingDists = []
 		for t in xrange(0, numTimeSteps):
 			#Update, calculate hamming distance
 			self.update(threshold)
-			currentHammingDist = self.calculateHammingDist()
-			hammingDists.append(currentHammingDist)
 
-		return hammingDists	
+		return float(self.calculateHammingDist()) / self.numGenes
+
+	"""
+	Compute a set of data representing avg saturated hamming 
+	dist vs thresholds, plot it
+	"""
+	def generateHammingDistVsThreshold(self, thresholdMin=0, thresholdMax=10,
+										thresholdStep=1, numICsPerThreshold=10,
+										numTimeStepsToSaturate=10, diffPermutation = 0.01):
+	
+		self.createPermutation(diffThreshold=diffPermutation)
+
+		thetas = []
+		avgHammingDists = []
+		for t in np.arange(thresholdMin, thresholdMax, thresholdStep):
+
+			hammingDistsForT = []
+			for i in xrange(0, numTimeStepsToSaturate):
+				#Create permutation, calculate hammingDist after 
+				hammingDistsForT.append(self.calculateSatHammingDist(numTimeSteps=numTimeStepsToSaturate, threshold=t))	
+	    		self.reset()	
+	    		self.createPermutation(diffThreshold=diffPermutation)
+
+			avgHammingDists.append(sum(hammingDistsForT) / float(len(hammingDistsForT)))
+			thetas.append(t)
+
+	    #Now, plot this using matplotlib
+		plt.clf()
+		plt.plot(thetas, avgHammingDists)
+		plt.xlabel('Threshold')
+		plt.ylabel('Saturated hamming distance (normalized)')	
+		plt.grid(True)
+		plt.savefig("test1.jpg")
+
 
 	"""
 	For debugging purposes
@@ -148,7 +202,7 @@ class geneNetwork:
 		plt.clf()
 		pos=nx.spring_layout(self.G)
 
-		val_map = {1: 0.2564, 0: 1.0}
+		val_map = {1: 1.0, 0: 0.2654}
 		values = [val_map.get(self.G.node[n]['value'], 0.1) for n in self.G]
 
 		nx.draw(self.G, pos, cmap=plt.get_cmap('prism'), node_color=values)
