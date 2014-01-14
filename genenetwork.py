@@ -12,7 +12,7 @@ import copy
 A geneNetwork class for gene network analysis.
 
 James Komianos
-Last Edited: 12/18/13
+Last Edited: 1/13/14
 """""""""""""""""""""""""""""""""""""""""""""""
 
 class geneNetwork:
@@ -167,7 +167,6 @@ class geneNetwork:
 			state = 1 if currentVal == 0 else 0
 			self.GPerm.node[nodeToChange]['value'] = self.GPermNodes[nodeToChange] = state
 
-
 	"""
 	Compute the hamming distance between two graphs (G and GPerm)
 	"""		
@@ -264,7 +263,6 @@ class geneNetwork:
 		for i in xrange(0, numICs):
 			allX.append(self.createGeneExpFactor(threshold=threshold))
 			self.reset(resetEdges=False)
-			print allX[i]
 
 		#Now, sum over all expression factors
 		for m in xrange(0, numICs):
@@ -276,6 +274,32 @@ class geneNetwork:
 
 		#normalize and return
 		return expDiv / (self.numGenes * numICs)
+
+
+	"""
+	Compute a set of data representing gene expression 
+	diversity vs thresholds, plot it
+	"""
+	def generateExpDivVsThreshold(self, thresholdMin=0, thresholdMax=10,
+										thresholdStep=1, numICsPerThreshold=10):
+	
+		thetas = []
+		expressionDiversities = []
+
+		for t in np.arange(thresholdMin, thresholdMax, thresholdStep):
+
+			thetas.append(t)
+			expressionDiversities.append(self.expressionDiversity(
+								threshold=t, numICs=numICsPerThreshold))	
+			self.reset(resetEdges=True)
+
+	    #Now, plot this using matplotlib
+		plt.clf()
+		plt.plot(thetas, expressionDiversities)
+		plt.xlabel('Threshold')
+		plt.ylabel('Gene Expression Diversity')	
+		plt.grid(True)
+		plt.savefig("geneExpressionDiversity.jpg")
 
 
 	"""
