@@ -20,7 +20,7 @@ class geneNetwork:
 	G = nx.Graph()
 	GPerm = None
 
-	#To keep track of node values
+	#To keep track of node values for updating
 	GNodes = {}
 	GPermNodes = {}
 
@@ -250,7 +250,8 @@ class geneNetwork:
 					X[n] += value
 
 		#Now, normalize
-		return [float(value) / (stop - start) for value in X]					
+		geneExpFactor = [float(value) / (stop - start) for value in X]
+		return geneExpFactor			
  
 	"""
 	Calculate expression diversity for this network	
@@ -261,7 +262,9 @@ class geneNetwork:
 		expDiv = 0
 		#Create expression factors
 		for i in xrange(0, numICs):
+			t1Exp = time.time()
 			allX.append(self.createGeneExpFactor(threshold=threshold))
+			t2Exp = time.time()
 			self.reset(resetEdges=False)
 
 		#Now, sum over all expression factors
@@ -270,11 +273,12 @@ class geneNetwork:
 			for n in xrange(0, numICs):
 				if m != n:
 					for j in xrange(0, self.numGenes): 
-						expDiv = allX[m][j] - allX[n][j]
+						expDiv += abs(allX[m][j] - allX[n][j])
 
 		#normalize and return
-		return expDiv / (self.numGenes * numICs)
+		normExpDiv =  expDiv / (self.numGenes * numICs)
 
+		return normExpDiv
 
 	"""
 	Compute a set of data representing gene expression 
