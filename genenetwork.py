@@ -246,7 +246,7 @@ class geneNetwork:
 	"""
 	def calculateSatHammingDist(self, numTimeSteps, threshold):	
 
-		self.findFrozenNodes(threshold=threshold)
+		#self.findFrozenNodes(threshold=threshold)
 
 		for t in xrange(0, numTimeSteps):
 			#Update, calculate hamming distance
@@ -297,7 +297,7 @@ class geneNetwork:
 
 		X = [0] * self.numGenes #gene expression factor
 
-		self.findFrozenNodes(threshold=threshold)
+		#self.findFrozenNodes(threshold=threshold)
 
 		for t in xrange(0, stop):
 			#Do not add to expression factor
@@ -362,7 +362,7 @@ class geneNetwork:
 		plt.xlabel('Threshold')
 		plt.ylabel('Gene Expression Diversity')	
 		plt.grid(True)
-		plt.savefig("geneExpressionDiversity.jpg")
+		plt.savefig("GED.jpg")
 
 
 	"""
@@ -379,7 +379,7 @@ class geneNetwork:
 		#Hash table to store the orbit
 		orbitTable = {}
 		#Find frozen nodes
-		self.findFrozenNodes(threshold = threshold)
+		#self.findFrozenNodes(threshold = threshold)
 
 		orbitFound = False
 		start = True

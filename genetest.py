@@ -41,20 +41,28 @@ def timingGEDTest():
 
 def periodicOrbitTest():
 
-    numGenes =25
+    numGenes = 25
     network = gn.geneNetwork(preset="RANDOM", numNodes=numGenes, connectionsPerNode=int(0.2*numGenes))
 
     #print network.findPeriodicOrbit(threshold = 0)
     #print  network.countAttractors(numICs=100, threshold=0)
 
     network.generateAttractorsVsThreshold(thresholdMin=-10, thresholdMax=15,
-                                        thresholdStep=0.5, numICsPerThreshold=300)
+                                        thresholdStep=0.5, numICsPerThreshold=100)
 
+
+def geneExpressionDiversityTest():
+
+    numGenes = 25
+    network = gn.geneNetwork(preset="RANDOM", numNodes=numGenes, connectionsPerNode=int(0.2*numGenes))
+    network.generateExpDivVsThreshold(thresholdMin=-10, thresholdMax=15,
+                                        thresholdStep=0.5, numICsPerThreshold = 100)
 
 def main():
     
     #timingGEDTest()
-    periodicOrbitTest()
+    #periodicOrbitTest()
+    geneExpressionDiversityTest()
 
 
 if __name__ == "__main__":
