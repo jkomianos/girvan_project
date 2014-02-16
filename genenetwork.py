@@ -221,7 +221,7 @@ class geneNetwork:
 			nodeToChange = random.randint(0,self.numGenes - 1)
 			currentVal = self.GPerm.node[nodeToChange]['value']
 			state = 1 if currentVal == 0 else 0
-			self.GPerm.node[nodeToChange]['value'] = self.GPermNodes[nodeToChange] = state
+			self.GPerm.node[nodeToChange]['value'] = self.GPermNodes[nodeToChange][0] = state
 
 	"""
 	Compute the hamming distance between two graphs (G and GPerm)
@@ -284,7 +284,7 @@ class geneNetwork:
 		plt.xlabel('Threshold')
 		plt.ylabel('Saturated hamming distance (normalized)')	
 		plt.grid(True)
-		plt.savefig("satHammingDist.jpg")
+		plt.savefig("hammingDist400ICs.jpg")
 
 	"""
 	Create gene expression factor for a given network
@@ -362,7 +362,7 @@ class geneNetwork:
 		plt.xlabel('Threshold')
 		plt.ylabel('Gene Expression Diversity')	
 		plt.grid(True)
-		plt.savefig("GED.jpg")
+		plt.savefig("GED400ICs.jpg")
 
 
 	"""
@@ -428,19 +428,18 @@ class geneNetwork:
 
 		return len(attractors)
 
-
 	"""
 	Create attractor count vs threshold plot
 	"""
-	def generateAttractorsVsThreshold(self, thresholdMin, thresholdMax,
+	def generateAttractorVsThreshold(self, thresholdMin, thresholdMax,
 										thresholdStep, numICsPerThreshold):
 
 		thetas = []
 		attractors = []
 
 		for t in np.arange(thresholdMin, thresholdMax, thresholdStep):
-
 			thetas.append(t)
+
 			attractors.append(self.countAttractors(numICs=numICsPerThreshold, threshold=t))	
 			self.reset(resetEdges=False)
 
@@ -450,7 +449,43 @@ class geneNetwork:
 		plt.xlabel('Threshold')
 		plt.ylabel('Attractor Count')	
 		plt.grid(True)
-		plt.savefig("attractorCount.jpg")
+		plt.savefig("")
+
+
+	"""
+	Create attractor count and GED vs threshold plot
+	"""
+	def generateDiversityVsThreshold(self, thresholdMin, thresholdMax,
+									 thresholdStep, numICsPerThreshold):
+
+		thetas = []
+		attractors = []
+		expressionDiversities = []
+
+		for t in np.arange(thresholdMin, thresholdMax, thresholdStep):
+
+			thetas.append(t)
+			attractors.append(self.countAttractors(numICs=numICsPerThreshold, threshold=t))	
+			expressionDiversities.append(self.expressionDiversity(threshold=t, numICs=numICsPerThreshold))	
+			self.reset(resetEdges=False)
+
+		#Normalize values
+		maxA = max(attractors)
+		maxE = max(expressionDiversities)
+
+		attractorsPlot = [float(x) / maxA for x in attractors]
+		expDivPlot = [float(x) / maxE for x in expressionDiversities]
+
+	    #Now, plot this using matplotlib
+		plt.clf()
+		plt.plot(thetas, attractorsPlot,'g--^', label='Attractor Count')
+		plt.plot(thetas, expDivPlot,'b-o', label='Expression Diversity')
+		plt.legend( loc='upper left', numpoints = 1 )
+		plt.xlabel('Threshold')
+		plt.ylabel('Diversity Parameter')	
+		plt.title('Diversity Parameter with varying threshold for 25 gene network')
+		plt.grid(True)
+		plt.savefig("AttractorGED.jpg")
 
 
 	"""
